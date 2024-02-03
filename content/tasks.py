@@ -4,12 +4,18 @@ import requests
 from content.models import Content, Author
 from main.celery import app
 
-content_api = 'https://hackapi.hellozelf.com/backend/api/v1/contents?page=1'
-author_api = 'https://hackapi.hellozelf.com/backend/api/v1/authors/302048'
+
+# TODO: Store API KEY in .env file
 api_key = '67c2f809sk_ac38sk_4dcbsk_8837sk_c5a6614ef48c1706933134'
 
 
 def get_author(unique_id):
+    """
+    Get author data from third party using his unique_id
+    :param unique_id:
+    :return:
+    """
+    # TODO: Store url in .env file
     url = 'https://hackapi.hellozelf.com/backend/api/v1/authors/'+str(unique_id)
     headers = {
         'x-api-key': api_key
@@ -21,7 +27,11 @@ def get_author(unique_id):
 
 
 def get_content(page_number):
-    print("page number: ", page_number)
+    """
+    A funtion to get content data from third party API page by page
+    :param page_number:
+    :return:
+    """
     headers = {
         'x-api-key': api_key
     }
@@ -30,8 +40,7 @@ def get_content(page_number):
 
     if response.ok:
         resp_data = response.json()
-        page_size = resp_data['page_size']
-        next_id = resp_data['next']
+        next_id = resp_data['next']  # Next page number
         content_data = resp_data['data']
         for data in content_data:
             content_unique_id = data['unique_id']
@@ -85,8 +94,12 @@ def get_content(page_number):
 
 @app.task
 def collect_contents():
+    """
+    Celery task to collect data from Third party API
+    :return:
+    """
     next_page_number = 1
-    # collect data untill page not None
+    # collect data until next page not None
     while next_page_number:
         next_page_number = get_content(next_page_number)
         print("next page", next_page_number)
